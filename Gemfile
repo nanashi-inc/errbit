@@ -105,5 +105,16 @@ gem 'underscore-rails'
 
 gem 'sucker_punch'
 
+# Deployment
+# ---------------------------------------
+group :deployment do
+  gem 'capistrano',         require: false
+  gem 'capistrano-bundler', require: false
+  gem 'capistrano-rails',   require: false
+  gem 'capistrano-rbenv',   require: false
+  gem 'capistrano3-puma',   require: false
+  gem 'capistrano-git-copy',require: false
+end
+
 ENV['USER_GEMFILE'] ||= './UserGemfile'
 eval_gemfile ENV['USER_GEMFILE'] if File.exist?(ENV['USER_GEMFILE'])

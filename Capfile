@@ -22,11 +22,11 @@ require 'capistrano/deploy'
 # require "capistrano/rails/migrations"
 
 # http://morizyun.github.io/blog/capistrano3-rails-deploy-multi-rbenv/
-require 'capistrano/rails'
+# require 'capistrano/rails'
 require 'capistrano/rbenv'
 require 'capistrano/bundler'
 require 'capistrano/rails/assets'
-require 'capistrano/rails/migrations'
+# require 'capistrano/rails/migrations'
 require 'capistrano/puma'
 install_plugin Capistrano::Puma
 # install_plugin Capistrano::Puma::Nginx 

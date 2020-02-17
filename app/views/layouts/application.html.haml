@@ -6,6 +6,8 @@
       &mdash;
       = yield(:page_title).present? ? yield(:page_title) : yield(:title)
     %meta{ :content => "text/html; charset=utf-8", "http-equiv" => "content-type" }/
+    %meta{:content => "noindex", :name => "robots"}/
+    %meta{:content => "noindex", :name => "googlebot"}/
     = favicon_link_tag
     = csrf_meta_tag
     = stylesheet_link_tag :application

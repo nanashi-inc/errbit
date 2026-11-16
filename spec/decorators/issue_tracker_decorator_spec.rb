@@ -1,18 +1,22 @@
-describe IssueTrackerDecorator do
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe IssueTrackerDecorator, type: :decorator do
   let(:fake_tracker) do
     klass = Class.new(ErrbitPlugin::IssueTracker) do
       def self.label
-        'fake'
+        "fake"
       end
 
       def self.note
-        'a note'
+        "a note"
       end
 
       def self.fields
         {
-          foo: { label: 'foo' },
-          bar: { label: 'bar' }
+          foo: {label: "foo"},
+          bar: {label: "bar"}
         }
       end
 
@@ -20,21 +24,23 @@ describe IssueTrackerDecorator do
         true
       end
     end
-    klass.new 'nothing special'
+    klass.new "nothing special"
   end
 
   let(:issue_tracker) do
-    it = IssueTracker.new
-    allow(it).to receive(:tracker).and_return(fake_tracker)
-    it
+    instance = IssueTracker.new
+
+    allow(instance).to receive(:tracker).and_return(fake_tracker)
+
+    instance
   end
 
   let(:decorator) do
-    IssueTrackerDecorator.new(issue_tracker)
+    described_class.new(issue_tracker)
   end
 
   describe "#type" do
-    it 'returns decorator for the issue tracker class' do
+    it "returns decorator for the issue tracker class" do
       expect(decorator.type.class).to eq(IssueTrackerTypeDecorator)
     end
   end

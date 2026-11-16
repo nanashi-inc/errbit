@@ -1,15 +1,17 @@
-require 'recurse'
+# frozen_string_literal: true
 
 class Notice
-  UNAVAILABLE = 'N/A'
+  include Mongoid::Document
+  include Mongoid::Timestamps
+
+  include ActiveModel::Serializers::Xml
+
+  UNAVAILABLE = "N/A"
 
   # Mongo will not accept index keys larger than 1,024 bytes and that includes
   # some amount of BSON encoding overhead, so keep it under 1,000 bytes to be
   # safe.
   MESSAGE_LENGTH_LIMIT = 1_000
-
-  include Mongoid::Document
-  include Mongoid::Timestamps
 
   field :message
   field :server_environment, type: Hash
@@ -31,7 +33,9 @@ class Notice
   before_save :sanitize
   before_destroy :problem_recache
 
-  validates :backtrace_id, :server_environment, :notifier, presence: true
+  validates :backtrace_id, presence: true
+  validates :server_environment, presence: true
+  validates :notifier, presence: true
 
   scope :ordered, -> { order_by(:created_at.asc) }
   scope :reverse_ordered, -> { order_by(:created_at.desc) }
@@ -42,12 +46,13 @@ class Notice
   # Overwrite the default setter to make sure the message length is no larger
   # than the limit we impose.
   def message=(m)
-    truncated_m = m.mb_chars.compose.limit(MESSAGE_LENGTH_LIMIT).to_s
+    truncated_m = m.truncate_bytes(MESSAGE_LENGTH_LIMIT, omission: nil)
+
     super(m.is_a?(String) ? truncated_m : m)
   end
 
   def user_agent
-    agent_string = env_vars['HTTP_USER_AGENT']
+    agent_string = env_vars["HTTP_USER_AGENT"]
     agent_string.blank? ? nil : UserAgent.parse(agent_string)
   end
 
@@ -60,16 +65,16 @@ class Notice
   end
 
   def environment_name
-    n = server_environment['server-environment'] || server_environment['environment-name']
-    n.blank? ? 'development' : n
+    n = server_environment["server-environment"] || server_environment["environment-name"]
+    n.blank? ? "development" : n
   end
 
   def component
-    request['component']
+    request["component"]
   end
 
   def action
-    request['action']
+    request["action"]
   end
 
   def where
@@ -83,39 +88,37 @@ class Notice
   end
 
   def url
-    request['url']
+    request["url"]
   end
 
   def host
     uri = url && URI.parse(url)
     return uri.host if uri && uri.host.present?
+
     UNAVAILABLE
   rescue URI::InvalidURIError
     UNAVAILABLE
   end
 
   def env_vars
-    vars = request['cgi-data']
+    vars = request["cgi-data"]
     vars.is_a?(Hash) ? vars : {}
   end
 
   def params
-    request['params'] || {}
+    request["params"] || {}
   end
 
   def session
-    request['session'] || {}
+    request["session"] || {}
   end
 
-  ##
-  # TODO: Move on decorator maybe
-  #
   def project_root
-    server_environment['project-root'] || '' if server_environment
+    server_environment["project-root"] || "" if server_environment
   end
 
   def app_version
-    server_environment['app-version'] || '' if server_environment
+    server_environment["app-version"] || "" if server_environment
   end
 
   # filter memory addresses out of object strings
@@ -124,7 +127,7 @@ class Notice
     message.gsub(/(#<.+?):[0-9a-f]x[0-9a-f]+(>)/, '\1\2')
   end
 
-protected
+  private
 
   def problem_recache
     problem.uncache_notice(self)
@@ -132,7 +135,7 @@ protected
 
   def sanitize
     [:server_environment, :request, :notifier].each do |h|
-      send("#{h}=", sanitize_hash(send(h)))
+      send(:"#{h}=", sanitize_hash(send(h)))
     end
   end
 
@@ -140,7 +143,7 @@ protected
     hash.recurse do |recurse_hash|
       recurse_hash.inject({}) do |h, (k, v)|
         if k.is_a?(String)
-          h[k.gsub(/\./, '&#46;').gsub(/^\$/, '&#36;')] = v
+          h[k.gsub(".", "&#46;").gsub(/^\$/, "&#36;")] = v
         else
           h[k] = v
         end

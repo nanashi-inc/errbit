@@ -1,4 +1,4 @@
-require 'hoptoad_notifier'
+# frozen_string_literal: true
 
 ##
 # Processes a new error report.
@@ -15,17 +15,9 @@ require 'hoptoad_notifier'
 # * <tt>:notifier</tt> - information to identify the source of the error report
 #
 class ErrorReport
-  attr_reader :api_key
-  attr_reader :error_class
-  attr_reader :framework
-  attr_reader :message
-  attr_reader :notice
-  attr_reader :notifier
-  attr_reader :problem
-  attr_reader :problem_was_resolved
-  attr_reader :request
-  attr_reader :server_environment
-  attr_reader :user_attributes
+  attr_reader :api_key, :error_class, :framework, :message, :notice,
+    :notifier, :problem, :problem_was_resolved, :request, :server_environment,
+    :user_attributes
 
   def initialize(xml_or_attributes)
     @attributes = xml_or_attributes
@@ -35,8 +27,8 @@ class ErrorReport
   end
 
   def rails_env
-    rails_env = server_environment['environment-name']
-    rails_env = 'development' if rails_env.blank?
+    rails_env = server_environment["environment-name"]
+    rails_env = "development" if rails_env.blank?
     rails_env
   end
 
@@ -65,20 +57,20 @@ class ErrorReport
 
   def make_notice
     @notice = Notice.new(
-      app:                app,
-      message:            message,
-      error_class:        error_class,
-      backtrace:          backtrace,
-      request:            request,
+      app: app,
+      message: message,
+      error_class: error_class,
+      backtrace: backtrace,
+      request: request,
       server_environment: server_environment,
-      notifier:           notifier,
-      user_attributes:    user_attributes,
-      framework:          framework
+      notifier: notifier,
+      user_attributes: user_attributes,
+      framework: framework
     )
   end
 
   def retrieve_problem_was_resolved
-    @problem_was_resolved = Problem.where('_id' => @error.problem_id, resolved: true).exists?
+    @problem_was_resolved = Problem.exists?(_id: @error.problem_id, resolved: true)
   end
 
   # Update problem cache with information about this notice
@@ -95,9 +87,10 @@ class ErrorReport
   # Send email notification if needed
   def email_notification
     return unless app.emailable? && should_email?
-    Mailer.err_notification(self).deliver_now
+
+    Mailer.with(error_report: self).err_notification.deliver_now
   rescue => e
-    HoptoadNotifier.notify(e)
+    Errbit::SelfErrorReporter.notify(e)
   end
 
   def should_notify?
@@ -109,9 +102,10 @@ class ErrorReport
   # Launch all notification define on the app associate to this notice
   def services_notification
     return unless app.notification_service_configured? && should_notify?
+
     app.notification_service.create_notification(problem)
   rescue => e
-    HoptoadNotifier.notify(e)
+    Errbit::SelfErrorReporter.notify(e)
   end
 
   ##
@@ -133,10 +127,11 @@ class ErrorReport
   end
 
   def should_keep?
-    app_version = server_environment['app-version'] || ''
+    app_version = server_environment["app-version"] || ""
     current_version = app.current_app_version
-    return true unless current_version.present?
+    return true if current_version.blank?
     return false if app_version.length <= 0
+
     Gem::Version.new(app_version) >= Gem::Version.new(current_version)
   end
 

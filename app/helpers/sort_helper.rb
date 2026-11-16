@@ -1,4 +1,5 @@
-# encoding: utf-8
+# frozen_string_literal: true
+
 module SortHelper
   def link_for_sort(name, field = nil)
     field ||= name.underscore
@@ -8,6 +9,7 @@ module SortHelper
     url += "&all_errs=true" if all_errs
     options = {}
     options[:class] = "current #{order}" if current
+
     link_to(name, url, options)
   end
 end

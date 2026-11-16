@@ -1,17 +1,25 @@
-class WatchersController < ApplicationController
-  expose :app
-  expose :watchers, -> { app.watchers }
+# frozen_string_literal: true
 
-  def destroy
-    watcher = watchers.where(user_id: params[:id]).first
-    watchers.delete(watcher)
-    flash[:success] = t('.success', app: app.name)
+class WatchersController < ApplicationController
+  def create
+    app = App.find(params.expect(:app_id))
+
+    app.watchers.create!(user: current_user)
+
+    flash[:success] = t(".success", app: app.name)
+
     redirect_to app_path(app)
   end
 
-  def update
-    watchers.create(user_id: current_user.id)
-    flash[:success] = t('.success', app: app.name)
+  def destroy
+    app = App.find(params.expect(:app_id))
+
+    watcher = app.watchers.where(user: current_user).first
+
+    app.watchers.delete(watcher)
+
+    flash[:success] = t(".success", app: app.name)
+
     redirect_to app_path(app)
   end
 end

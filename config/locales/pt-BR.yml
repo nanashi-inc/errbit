@@ -10,13 +10,12 @@ pt-BR:
         success: "Boas notícias! '%{app_name}' foi atualizado com sucesso."
       destroy:
         success: "'%{app_name}' foi destruído com sucesso."
-
   n_errs:
-    one:   "%{count} erro"
+    one: "%{count} erro"
     other: "%{count} erros"
     will_be_deleted: serà excluído(s)
   n_errs_have:
-    one:   "%{count} erro foi"
+    one: "%{count} erro foi"
     other: "%{count} erros foram"
     been_resolved: resolvido(s)
     been_unresolved: tornado(s) não resolvido(s)
@@ -24,40 +23,42 @@ pt-BR:
     been_deleted: excluído(s)
   layouts:
     application:
-      title: 'Errbit'
-      errbit: 'Errbit'
+      title: "Errbit"
+      errbit: "Errbit"
       powered_html: "Powered by %{link} : the open source error catcher."
 
   shared:
     navigation:
-      apps: 'Aplicações'
-      errors: 'Erros'
-      users: 'Usuários'
-      config: 'Configurações'
+      apps: "Aplicações"
+      errors: "Erros"
+      users: "Usuários"
+      config: "Configurações"
     session:
-      sign_out: 'Sair'
-      edit_profile: 'Editar conta'
+      sign_out: "Sair"
+      edit_profile: "Editar conta"
+    notice_fingerprinter:
+      error_class: Classe do erro
+      message: Mensagem de erro
+      backtrace_lines: Número de linhas do 'backtrace' (-1 para ilimitado)
+      component: Componente (ou Controlador)
+      action: Ação
+      environment_name: Nome do Ambiente
 
   controllers:
+    application:
+      require_admin: "Sorry, you don't have permission to do that"
+      user_not_authorized: "You are not authorized to perform this action."
     apps:
       flash:
         create:
           success: "Sua aplicação foi criado com sucesso."
-          error:  "Sua aplicação não pôde ser criada."
+          error: "Sua aplicação não pôde ser criada."
         update:
           success: "Sua aplicação foi atualizada com sucesso."
           error: "Sua aplicação não pôde ser atualizada."
         destroy:
           success: "Sua aplicação foi destruída com sucesso."
           error: "Sua aplicação não pôde ser destruída."
-
-    users:
-      flash:
-        destroy:
-          success: "Isto é triste. %{name} não faz mais parte do seu time."
-          error: "Você não pode excluir a si mesmo"
-        update:
-          success: "As informações de %{name} foram atualizadas com sucesso."
     problems:
       flash:
         no_select_problem: "Você não selecionou nenhum erro"
@@ -66,16 +67,17 @@ pt-BR:
           success: "%{nb} erros foram mesclados."
   devise:
     registrations:
-      signed_up_but_unconfirmed: 'Uma mensagem foi enviada para o seu e-mail com um link de confirmação. Acesse o link para ativar sua conta.'
-      signed_up_but_inactive: 'Você se registrou com sucesso. Entretanto, só será possível entrar no sistema quando sua conta for ativada.'
-      signed_up_but_locked: 'Você se registrou com sucesso. Entratanto, não será possível entrar no sistema porque sua conta está bloqueada.'
+      signed_up_but_unconfirmed: "Uma mensagem foi enviada para o seu e-mail com um link de confirmação. Acesse o link para ativar sua conta."
+      signed_up_but_inactive: "Você se registrou com sucesso. Entretanto, só será possível entrar no sistema quando sua conta for ativada."
+      signed_up_but_locked: "Você se registrou com sucesso. Entratanto, não será possível entrar no sistema porque sua conta está bloqueada."
     omniauth_callbacks:
-      failure: "Não foi possível autenticá-lo a partir da conta %{kind} porque \"%{reason}\"."
+      failure: 'Não foi possível autenticá-lo a partir da conta %{kind} porque "%{reason}".'
       success: "Autenticado com sucesso a partir da conta %{kind}."
+    google_login:
+      domain_unauthorized: "Account's email domain is not authorized for login. Please log in with an account from a trusted domain."
     sessions:
       new:
         sign_in: "Entrar"
-
   problems:
     index:
       all_errors: "Todos os erros"
@@ -83,17 +85,17 @@ pt-BR:
       hide_resolved: "ocultar resolvidos"
       show_resolved: "exibir resolvidos"
     table:
-        app: Aplicação
-        env: Ambiente
-        what_&_where: 'O quê & onde'
-        latest: Último
-        count: Total
-        merge: Mesclar
-        unmerge: Separar
-        resolve: Resolver
-        unresolve: Tornar não resolvido
-        delete: Excluir
-        ago: atrás
+      app: Aplicação
+      env: Ambiente
+      what_and_where_html: "O quê &amp; onde"
+      latest: Último
+      count: Total
+      merge: Mesclar
+      unmerge: Separar
+      resolve: Resolver
+      unresolve: Tornar não resolvido
+      delete: Excluir
+      ago: atrás
     confirm:
       delete: "Excluir permanentemente os itens selecionados?"
       resolve: "Resolver os itens selecionados? Isto não poderá ser alterado depois."
@@ -102,9 +104,9 @@ pt-BR:
       unmerge: "Separar os itens selecionados? Isto não poderá ser alterado depois."
       unresolve: "Tornar não resolvidos os itens selecionados? Isto não poderá ser alterado depois."
     search:
-      search_placeholder: 'Pesquisar por itens'
+      search_placeholder: "Pesquisar por itens"
     resolve:
-      the_error_has_been_resolved: 'Boas notícias! O erro foi resolvido.'
+      the_error_has_been_resolved: "Boas notícias! O erro foi resolvido."
     show:
       comments: Comentários
       add_a_comment: Adicionar um comentário
@@ -115,7 +117,7 @@ pt-BR:
       parameters: Parâmetros
       session: Sessão
       ago_by: atrás por
-      ago_by_unkown_user: atrás por [Usuário Desconhecido]
+      ago_by_unknown_user: atrás por [Usuário Desconhecido]
       first_notice: Primeiro notificação
       last_notice: Última notificação
       environment: Ambiente
@@ -123,10 +125,19 @@ pt-BR:
       where: Onde
       up: subir
       resolve: resolver
+      notice_by_id: "notificação: %{notice_id}"
+    sparkline:
+      graph-2-weeks: Graph (2 weeks)
+      graph-24-hours: Graph (24 hours)
   comments:
     confirm_delete: "Excluir permanentemente este comentário?"
+    create:
+      success: "Comment saved!"
+      error: "I'm sorry, your comment was blank! Try again?"
+    destroy:
+      success: "Comment deleted!"
+      error: "Sorry, I couldn't delete your comment for some reason. I hope you don't have any sensitive information in there!"
   users:
-    confirm_delete: "Excluir permanentemente este usuário?"
     index:
       new: Adicionar novo usuário
       title: Usuários
@@ -136,48 +147,62 @@ pt-BR:
       admin: Administrador?
       admin_yes: Sim
       admin_no: Não
+    show:
+      name: Nome
+      email: E-mail
+      username: Usuário
+      admin: Adminstrador?
+      admin_yes: Sim
+      admin_no: Não
+      created: Criado em
+      edit: editar
+      destroy: excluir
+      confirm_delete: "Excluir permanentemente este usuário?"
+    new:
+      title: Novo Usuário
+      cancel: cancelar
+      add_user: Adicionar usuário
     edit:
       title: Editar
       cancel: cancelar
       update_user: Atualizar usuário
+    create:
+      success: "%{name} is now part of the team. Be sure to add them as a project watcher."
+    update:
+      success: "As informações de %{name} foram atualizadas com sucesso."
+    destroy:
+      success: "Isto é triste. %{name} não faz mais parte do seu time."
+      error: "Você não pode excluir a si mesmo"
     fields:
       name: Nome
+      username: Usuário
       email: E-mail
       entries: Registros por página
       time_zone: Fuso horário
       password: Senha
       password_confirmation: Confirmação de Senha
       admin: Adminstrador?
-    new:
-      title: Novo Usuário
-      cancel: cancelar
-      add_user: Adicionar usuário
-    show:
-      name: Nome
-      email: E-mail
-      admin: Adminstrador?
-      created: Criado em
-      edit: editar
-      destroy: excluir
   apps:
     confirm_delete: "Excluir permanentemente esta aplicação?"
     confirm_destroy_all_problems: "Excluir permanentemente todos os erros desta aplicação?"
     index:
+      title: Aplicações
+      new_app: Adicionar nova aplicação
+    table:
+      name: Nome
+      repository: Repositório
       notify: Serviços de Notificação
       tracker: Rastreador
       errors: Erros
-      name: Nome
-      repository: Repositório
-      title: Aplicações
-      new_app: Adicionar nova aplicação
-      no_apps: 'Nenhuma aplicação aqui.'
-      click_to_create: 'Clique aqui para criar a sua primeira'
+      no_apps: "Nenhuma aplicação aqui."
+      click_to_create: "Clique aqui para criar a sua primeira"
     fields:
       name: Name
       api_key: Chave de Acesso
       repository_branch: Ramo do repositório
       github_repo: Repositório do GitHub
       bitbucket_repo: Repositório do BitBucket
+      custom_backtrace_url_template: Custom Backtrace URL Template
       asset_host: Servidor de 'Assets'
       asset_host_help: Usado para gerar links dos erros JavaScript
       asset_host_placeholder: "ex.: https://assets.example.com"
@@ -188,11 +213,12 @@ pt-BR:
       notify_on_errors: Notificar em caso de erros
       notify_all_users: Enviar notificações para todos os usuários
       regenerate_api_key: "Re-gerar chave de acesso"
+      use_site_fingerprinter: "Use Site Fingerprinter"
     show:
       all_errs: todos os errors
       all_users_notified: "Todos os usuários serão notificados quando algo acontecer."
       api_key: "Chave de Acesso da API:"
-      are_you_sure: 'Está certo disto?'
+      are_you_sure: "Está certo disto?"
       atom_title: "Notificações do Errbit para %{name} em %{host}"
       edit: editar
       environment: Ambiente
@@ -201,7 +227,7 @@ pt-BR:
       github_repo: Repositório GitHub
       message: Mensagem
       no_error_yet: "Nenhum erro foi capturado até então, certifique-se de que sua aplicação está configurada"
-      no_watcher: "Infelizmente, ninguém está observando esta aplicação"
+      no_watchers: "Infelizmente, ninguém está observando esta aplicação"
       repository: Repositório
       revision: Versão
       show_hide: "(exibir/ocultar)"
@@ -210,7 +236,7 @@ pt-BR:
       user_or_email: Usuário ou E-mail
       watch: observar
       watchers: Observadores
-      when:  Quando
+      when: Quando
       who: Quem
     issue_tracker_fields:
       legend: Rastreador de defeitos
@@ -219,22 +245,22 @@ pt-BR:
       cancel: "cancelar"
       title: "Adicionar Aplicação"
     edit:
-      title: 'Editar Aplicação'
-      destroy: 'destruir aplicação'
-      cancel: 'cancelar'
-      seriously: 'Sério?'
-      update: 'Atualizar Aplicação'
+      title: "Editar Aplicação"
+      destroy: "destruir aplicação"
+      cancel: "cancelar"
+      seriously: "Sério?"
+      update: "Atualizar Aplicação"
+    search:
+      search_placeholder: "Search for application"
   watchers:
+    create:
+      success: "Agora você está observando %{app}"
     destroy:
       success: "Você não está mais observando %{app}"
-    update:
-      success: "Agora você está observando %{app}"
   site_config:
     index:
       title: Configurações
       cancel: cancelar
-      notice_fingerprinter: Impressão digital da notificação
-      notice_fingerprinter_text: A impressão digital da notificação determina como as notificações serão agrupadas. Quando habilitado, cada item compõe a unicidade do erro.
       error_class: Classe do erro
       message: Mensagem de erro
       backtrace_lines: Número de linhas do 'backtrace' (-1 para ilimitado)
@@ -242,6 +268,8 @@ pt-BR:
       action: Ação
       environment_name: Nome do Ambiente
       update_config: Atualizar configurações
+    update:
+      success: "Updated site config"
   notices:
     summary:
       message: Mensagem
@@ -256,6 +284,9 @@ pt-BR:
       app_version: Versão da Aplicação
       framework: Framework
       relative_directory: Diretório relativo
+  notice_fingerprinter:
+    title: Notice Fingerprinter
+    text: The notice fingerprinter governs how error notifications are grouped. Each item counts toward an error's uniqueness if enabled.
   paginator:
     viewing_occurrence: visualizando ocorrência
     of: de

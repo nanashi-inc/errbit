@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ProblemDestroy
   attr_reader :problem
 
@@ -14,7 +16,7 @@ class ProblemDestroy
   ##
   # Destroy all problem pass in args
   #
-  # @params [ Array[Problem] ] problems the list of problem need to be delete
+  # @params [ Array[Problem] ] problems the list of problem need to be deleted
   #   can be a single Problem
   # @return [ Integer ]
   #   the number of problem destroy
@@ -25,7 +27,7 @@ class ProblemDestroy
     end.count
   end
 
-private
+  private
 
   def errs_id
     problem.errs.only(:id).map(&:id)
@@ -36,11 +38,11 @@ private
   end
 
   def delete_errs
-    Notice.delete_all(err_id: { '$in' => errs_id })
-    Err.delete_all(_id: { '$in' => errs_id })
+    Notice.delete_all(err_id: {"$in" => errs_id})
+    Err.delete_all(_id: {"$in" => errs_id})
   end
 
   def delete_comments
-    Comment.delete_all(_id: { '$in' => comments_id })
+    Comment.delete_all(_id: {"$in" => comments_id})
   end
 end

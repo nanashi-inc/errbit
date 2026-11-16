@@ -1,4 +1,4 @@
-require 'problem_destroy'
+# frozen_string_literal: true
 
 class ResolvedProblemClearer
   ##
@@ -10,12 +10,12 @@ class ResolvedProblemClearer
         criteria.each do |problem|
           ProblemDestroy.new(problem).execute
         end
-        repair_database
+        compact_database
       end
     end
   end
 
-private
+  private
 
   def nb_problem_resolved
     @count ||= criteria.count
@@ -25,7 +25,14 @@ private
     @criteria = Problem.resolved
   end
 
-  def repair_database
-    Mongoid.default_client.command repairDatabase: 1
+  def compact_database
+    collections = Mongoid.default_client.collections
+    collections.map(&:name).map do |collection|
+      Mongoid.default_client.command compact: collection
+    rescue Mongo::Error::OperationFailure => e
+      next if /CMD_NOT_ALLOWED: compact/.match?(e.message)
+
+      raise e
+    end
   end
 end

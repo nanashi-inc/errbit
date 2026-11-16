@@ -1,0 +1,8 @@
+.envrc
+/.bundle
+/coverage
+/node_modules
+/.idea
+spec/examples.txt
+package.json
+yarn.lock

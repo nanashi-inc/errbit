@@ -1,22 +1,26 @@
+# frozen_string_literal: true
+
 module ApplicationHelper
   def message_graph(problem)
     create_percentage_table_for(problem.messages)
   end
 
   def generate_problem_ical(notices)
-    RiCal.Calendar do |cal|
-      notices.each_with_index do |notice, idx|
-        cal.event do |event|
-          event.summary     = "#{idx + 1} #{notice.message}"
-          event.description = notice.url if notice.url
-          event.dtstart     = notice.created_at.utc
-          event.dtend       = notice.created_at.utc + 60.minutes
-          event.organizer   = notice.server_environment && notice.server_environment["hostname"]
-          event.location    = notice.project_root
-          event.url         = app_problem_url(app_id: notice.problem.app.id, id: notice.problem)
-        end
+    calendar = Icalendar::Calendar.new
+
+    notices.each_with_index do |notice, index|
+      calendar.event do |event|
+        event.summary = "#{index + 1} #{notice.message}"
+        event.description = notice.url if notice.url
+        event.dtstart = notice.created_at.utc
+        event.dtend = notice.created_at.utc + 60.minutes
+        event.organizer = notice.server_environment && notice.server_environment["hostname"]
+        event.location = notice.project_root
+        event.url = app_problem_url(app_id: notice.problem.app.id, id: notice.problem)
       end
-    end.to_s
+    end
+
+    calendar.publish.to_ical
   end
 
   def user_agent_graph(problem)
@@ -32,17 +36,17 @@ module ApplicationHelper
   end
 
   def tally(collection)
-    collection.values.inject({}) do |tallies, tally|
-      tallies[tally['value']] = tally['count']
-      tallies
+    collection.values.each_with_object({}) do |tally, tallies|
+      tallies[tally["value"]] = tally["count"]
     end
   end
 
   def create_percentage_table_from_tallies(tallies, options = {})
-    total   = (options[:total] || total_from_tallies(tallies))
+    total = options[:total] || total_from_tallies(tallies)
     percent = 100.0 / total.to_f
-    rows    = tallies.map { |value, count| [(count.to_f * percent), value] }. \
-      sort { |a, b| b[0] <=> a[0] }
+    rows = tallies.map { |value, count| [(count.to_f * percent), value] }
+      .sort { |a, b| b[0] <=> a[0] }
+
     render "problems/tally_table", rows: rows
   end
 
@@ -51,7 +55,7 @@ module ApplicationHelper
   end
 
   def tail(collection)
-    collection.to_a[head_size..-1].to_a
+    collection.to_a[head_size..].to_a
   end
 
   def issue_tracker_types
@@ -60,7 +64,7 @@ module ApplicationHelper
     end
   end
 
-private
+  private
 
   def total_from_tallies(tallies)
     tallies.values.sum

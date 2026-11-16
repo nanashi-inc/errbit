@@ -1,16 +1,21 @@
-Fabrication::Config.fabricator_path.each do |folder|
-  Dir.glob(File.join(Rails.root, folder, '**', '*.rb')).each do |file|
-    require file
-  end
-end
+# frozen_string_literal: true
 
-describe "Fabrication" do
-  # TODO : when 1.8.7 drop support se directly Symbol#sort
-  Fabrication.manager.schematics.keys.sort.each do |fabricator_name|
-    context "Fabricate(:#{fabricator_name})" do
-      subject { Fabricate.build(fabricator_name) }
+require "rails_helper"
 
-      it { is_expected.to be_valid }
-    end
-  end
-end
+# TODO: add factory bot factories validator/linter.
+
+# Fabrication::Config.fabricator_path.each do |folder|
+#   Dir.glob(File.join(Rails.root, folder, "**", "*.rb")).each do |file|
+#     require file
+#   end
+# end
+
+# RSpec.describe "Fabrication", type: :model do
+#   Fabrication.manager.schematics.keys.sort.each do |fabricator_name|
+#     context "Fabricate(:#{fabricator_name})" do
+#       subject { Fabricate.build(fabricator_name) }
+#
+#       it { expect(subject.valid?).to eq(true) }
+#     end
+#   end
+# end

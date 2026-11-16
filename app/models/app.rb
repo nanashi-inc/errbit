@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class App
   include Comparable
   include Mongoid::Document
@@ -7,8 +9,9 @@ class App
   field :api_key
   field :github_repo
   field :bitbucket_repo
+  field :custom_backtrace_url_template
   field :asset_host
-  field :repository_branch
+  field :repository_branch, type: String
   field :current_app_version
   field :notify_all_users, type: Boolean, default: false
   field :notify_on_errs, type: Boolean, default: true
@@ -17,12 +20,12 @@ class App
   # Some legacy apps may have string as key instead of BSON::ObjectID
   # identity :type => String
   field :_id,
-    type:          String,
+    type: String,
     pre_processed: true,
-    default:       -> { BSON::ObjectId.new.to_s }
+    default: -> { BSON::ObjectId.new.to_s }
 
   embeds_many :watchers
-  embeds_one :issue_tracker, class_name: 'IssueTracker'
+  embeds_one :issue_tracker, class_name: "IssueTracker"
   embeds_one :notification_service
   embeds_one :notice_fingerprinter
 
@@ -31,30 +34,31 @@ class App
   before_validation :generate_api_key, on: :create
   before_save :normalize_github_repo
   before_create :build_notice_fingerprinter
-  after_find :build_notice_fingerprinter
   after_update :store_cached_attributes_on_problems
+  after_find :build_notice_fingerprinter
 
-  validates :name, :api_key, presence: true, uniqueness: { allow_blank: true }
+  validates :name, :api_key, presence: true, uniqueness: {allow_blank: true}
   validates_associated :watchers
   validates_associated :notice_fingerprinter
   validate :check_issue_tracker
 
   accepts_nested_attributes_for :watchers,
     allow_destroy: true,
-    reject_if:     proc { |attrs| attrs[:user_id].blank? && attrs[:email].blank? }
+    reject_if: proc { |attrs| attrs[:user_id].blank? && attrs[:email].blank? }
   accepts_nested_attributes_for :issue_tracker,
     allow_destroy: true,
-    reject_if:     proc { |attrs| !ErrbitPlugin::Registry.issue_trackers.keys.map(&:to_s).include?(attrs[:type_tracker].to_s) }
+    reject_if: proc { |attrs| !ErrbitPlugin::Registry.issue_trackers.keys.map(&:to_s).include?(attrs[:type_tracker].to_s) }
   accepts_nested_attributes_for :notification_service,
     allow_destroy: true,
-    reject_if:     proc { |attrs| !NotificationService.subclasses.map(&:to_s).include?(attrs[:type].to_s) }
+    reject_if: proc { |attrs| !NotificationService.subclasses.map(&:to_s).include?(attrs[:type].to_s) }
   accepts_nested_attributes_for :notice_fingerprinter
 
-  index({ name: "text" }, default_language: "english")
+  index({name: "text"}, default_language: "english")
 
-  scope :search, ->(value) { where('$text' => { '$search' => value }) }
+  scope :search, ->(value) { where("$text" => {"$search" => value}) }
+
   scope :watched_by, lambda { |user|
-    where watchers: { "$elemMatch" => { "user_id" => user.id } }
+    where watchers: {"$elemMatch" => {user_id: user.id}}
   }
 
   def build_notice_fingerprinter
@@ -65,11 +69,12 @@ class App
     self.notice_fingerprinter = attrs
   end
 
+  # @param user [User]
   def watched_by?(user)
-    watchers.pluck("user_id").include? user.id
+    watchers.pluck("user_id").include?(user.id)
   end
 
-  # Acceps a hash with the following attributes:
+  # Accepts a hash with the following attributes:
   #
   # * <tt>:error_class</tt> - the class of error (required to create a new Problem)
   # * <tt>:environment</tt> - the environment the source app was running in (required to create a new Problem)
@@ -82,7 +87,7 @@ class App
     problem = problems.create!(
       error_class: attrs[:error_class],
       environment: attrs[:environment],
-      app_name:    name
+      app_name: name
     )
     problem.errs.create!(attrs.slice(:fingerprint, :problem_id))
   end
@@ -98,7 +103,7 @@ class App
 
   # Legacy apps don't have notify_on_errs param
   def notify_on_errs
-    !(super == false)
+    super != false
   end
   alias_method :notify_on_errs?, :notify_on_errs
 
@@ -107,7 +112,7 @@ class App
   end
 
   def repo_branch
-    repository_branch.present? ? repository_branch : 'master'
+    repository_branch.presence || "main"
   end
 
   def github_repo?
@@ -157,11 +162,11 @@ class App
     return if copy_app.blank?
 
     # Copy fields
-    (copy_app.fields.keys - %w(_id name created_at updated_at)).each do |k|
+    (copy_app.fields.keys - ["_id", "name", "created_at", "updated_at"]).each do |k|
       send("#{k}=", copy_app.send(k))
     end
     # Clone the embedded objects that can be changed via apps/edit (ignore errs, etc.)
-    %w(watchers issue_tracker notification_service).each do |relation|
+    ["watchers", "issue_tracker", "notification_service"].each do |relation|
       if (obj = copy_app.send(relation))
         send("#{relation}=", obj.is_a?(Array) ? obj.map(&:clone) : obj.clone)
       end
@@ -192,15 +197,20 @@ class App
   end
 
   def use_site_fingerprinter
-    notice_fingerprinter.source == 'site'
+    notice_fingerprinter.source == "site"
   end
 
-protected
+  def attributes_for_super_diff
+    {
+      id: id.to_s,
+      name: name
+    }
+  end
+
+  private
 
   def store_cached_attributes_on_problems
-    Problem.where(app_id: id).update_all(
-      app_name: name
-    )
+    Problem.where(app_id: id).update_all(app_name: name)
   end
 
   def generate_api_key
@@ -218,10 +228,12 @@ protected
 
   def normalize_github_repo
     return if github_repo.blank?
+
     github_host = URI.parse(Errbit::Config.github_url).host
-    github_host = ::Regexp.escape(github_host)
-    github_repo.strip!
-    github_repo.sub!(%r{(git@|https?://)#{github_host}(/|:)}, '')
-    github_repo.sub!(/\.git$/, '')
+    github_host = Regexp.escape(github_host)
+
+    self.github_repo = github_repo.strip
+    self.github_repo = github_repo.sub(%r{(git@|https?://)#{github_host}(/|:)}, "")
+    self.github_repo = github_repo.sub(/\.git$/, "")
   end
 end

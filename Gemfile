@@ -1,109 +1,115 @@
-source 'https://rubygems.org'
+# frozen_string_literal: true
 
-RAILS_VERSION = '~> 4.2.10'
+source "https://rubygems.org"
 
-send :ruby, ENV['GEMFILE_RUBY_VERSION'] if ENV['GEMFILE_RUBY_VERSION']
+ruby file: ".ruby-version"
 
-gem 'actionmailer', RAILS_VERSION
-gem 'actionpack', RAILS_VERSION
-gem 'railties', RAILS_VERSION
+gem "rails", "8.1.4.1"
 
-gem 'actionmailer_inline_css'
-gem 'decent_exposure'
-gem 'devise', '~> 4.4.0'
-gem 'dotenv-rails'
-gem 'draper'
-gem 'errbit_plugin'
-gem 'errbit_github_plugin'
-gem 'font-awesome-rails'
-gem 'haml', '~> 5.1'
-gem 'htmlentities'
-gem 'kaminari'
-gem 'kaminari-mongoid'
-gem 'mongoid', '~> 5.4'
-gem 'mongoid_rails_migrations'
-gem 'rack-ssl', require: 'rack/ssl' # force SSL
-gem 'rack-ssl-enforcer', require: false
-gem 'rails_autolink'
-gem 'useragent'
-
-# Please don't update hoptoad_notifier to airbrake.
-# It's for internal use only, and we monkeypatch certain methods
-gem 'hoptoad_notifier', "~> 2.4"
+gem "sprockets-rails"
+gem "stimulus-rails"
+gem "importmap-rails"
+gem "turbo-rails"
+gem "activemodel-serializers-xml"
+gem "actionmailer_inline_css"
+gem "decent_exposure"
+gem "devise"
+gem "devise-i18n"
+gem "pundit"
+gem "dotenv"
+gem "draper"
+gem "errbit_plugin"
+gem "errbit_github_plugin"
+gem "font-awesome-rails"
+gem "htmlentities"
+gem "kaminari"
+gem "kaminari-mongoid"
+gem "kaminari-i18n"
+gem "mongoid"
+gem "faraday-retry"
+gem "octokit"
+gem "omniauth"
+gem "omniauth-rails_csrf_protection"
+gem "omniauth-github"
+gem "omniauth-google-oauth2"
+gem "rails_autolink"
+gem "rails-i18n"
+gem "inline_svg"
+gem "useragent"
+gem "nokogiri"
+gem "uri"
+gem "rack-timeout"
+gem "puma"
+gem "ostruct"
+gem "securerandom"
+gem "airbrake", require: false
 
 # Notification services
 # ---------------------------------------
-gem 'campy'
-# Hipchat
-gem 'hipchat'
-# Google Talk
-gem 'xmpp4r', require: ["xmpp4r", "xmpp4r/muc"]
+gem "campy"
 # Hoiio (SMS)
-gem 'hoi'
-# Pushover (iOS Push notifications)
-gem 'rushover'
+gem "hoi"
+# Pushover.net (iOS/Android Push notifications)
+gem "pushover2"
 # Hubot
-gem 'httparty'
-# Flowdock
-gem 'flowdock'
+gem "httparty"
 
-# Authentication
-# ---------------------------------------
-# GitHub OAuth
-gem 'omniauth-github'
-# Google OAuth
-gem 'omniauth-google-oauth2'
+gem "icalendar"
+gem "json"
 
-gem 'ri_cal'
-gem 'yajl-ruby', platform: 'ruby'
-gem 'json', platform: 'jruby'
+gem "pry-rails"
+
+# Reduces boot times through caching; required in config/boot.rb
+gem "bootsnap", ">= 1.4.4", require: false
+
+# Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
+gem "thruster", require: false
 
 group :development, :test do
-  gem 'airbrake', '~> 4.3.5', require: false
-  gem 'pry-rails'
-  gem 'pry-byebug', platforms: [:mri]
-  gem 'quiet_assets'
-  gem 'rubocop', require: false
+  gem "rubydex", require: false
+  gem "rubocop", require: false
+  gem "rubocop-rails", require: false
+  gem "rubocop-rake", require: false
+  gem "rubocop-capybara", require: false
+  gem "rubocop-rspec", require: false
+  gem "rubocop-rspec_rails", require: false
+  gem "rubocop-performance", require: false
+  gem "rubocop-disable_syntax", require: false
+  gem "rubocop-thread_safety", require: false
+  gem "rubocop-factory_bot", require: false
+  gem "rubocop-erb", require: false
+  gem "standard", "1.57.0", require: false
+  gem "faker"
+  gem "factory_bot_rails"
+  gem "brakeman", require: false
+  gem "herb", require: false
 end
 
 group :development do
-  gem 'better_errors'
-  gem 'binding_of_caller', platform: 'ruby'
-  gem 'meta_request'
+  gem "listen", "~> 3.10"
+  gem "bundler-audit", require: false
 end
 
 group :test do
-  gem 'rake'
-  gem 'rspec'
-  gem 'rspec-rails', require: false
-  gem 'rspec-activemodel-mocks'
-  gem 'mongoid-rspec', require: false
-  gem 'fabrication'
-  gem 'capybara'
-  gem 'poltergeist'
-  gem 'phantomjs'
-  gem 'launchy'
-  gem 'email_spec'
-  gem 'timecop'
-  gem 'coveralls', require: false
+  gem "rails-controller-testing"
+  gem "rspec-rails", require: false
+  gem "rspec-rebound", require: false
+  gem "rspec-activemodel-mocks"
+  gem "mongoid-rspec"
+  gem "pundit-matchers"
+  gem "capybara"
+  gem "selenium-webdriver"
+  gem "launchy"
+  gem "email_spec"
+  gem "simplecov", require: false
+  gem "super_diff"
+  gem "webmock"
+  gem "vcr"
 end
 
-group :heroku, :production do
-  gem 'rails_12factor', require: ENV.key?("HEROKU")
-end
-
-group :no_docker, :test, :development do
-  gem 'therubyracer', platform: :ruby # C Ruby (MRI) or Rubinius, but NOT Windows
-end
-
-gem 'puma'
-gem 'sass-rails'
-gem 'uglifier'
-gem 'jquery-rails'
-gem 'pjax_rails'
-gem 'underscore-rails'
-
-gem 'sucker_punch'
+gem "jquery-rails"
+gem "pjax_rails"
+gem "underscore-rails"
 
 # Deployment
 # ---------------------------------------
@@ -116,5 +122,4 @@ group :deployment do
   gem 'capistrano-git-copy',require: false
 end
 
-ENV['USER_GEMFILE'] ||= './UserGemfile'
-eval_gemfile ENV['USER_GEMFILE'] if File.exist?(ENV['USER_GEMFILE'])
+eval_gemfile "./UserGemfile"

@@ -1,4 +1,4 @@
-require 'sparklines'
+# frozen_string_literal: true
 
 class ProblemsController < ApplicationController
   include ProblemsSearcher
@@ -8,15 +8,15 @@ class ProblemsController < ApplicationController
   ]
 
   expose(:app_scope) do
-    params[:app_id] ? App.where(_id: params[:app_id]) : App.all
+    params[:app_id] ? App.where(_id: params.expect(:app_id)) : App.all
   end
 
   expose(:app) do
-    AppDecorator.new app_scope.find(params[:app_id])
+    AppDecorator.new(app_scope.find(params.expect(:app_id)))
   end
 
   expose(:problem) do
-    ProblemDecorator.new app.problems.find(params[:id])
+    ProblemDecorator.new(app.problems.find(params.expect(:id)))
   end
 
   expose(:all_errs) do
@@ -27,7 +27,7 @@ class ProblemsController < ApplicationController
     params[:filter]
   end
 
-  expose(:params_environement) do
+  expose(:params_environment) do
     params[:environment]
   end
 
@@ -35,123 +35,145 @@ class ProblemsController < ApplicationController
   # it would be possible to add a really fancy UI for it at some point, but for now, it's really
   # useful if there are noisy apps that you want to ignore.
   expose(:problems) do
-    finder = Problem.
-      for_apps(app_scope).
-      in_env(params_environement).
-      filtered(filter).
-      all_else_unresolved(all_errs).
-      ordered_by(params_sort, params_order)
+    finder = Problem
+      .for_apps(app_scope)
+      .in_env(params_environment)
+      .filtered(filter)
+      .all_else_unresolved(all_errs)
+      .ordered_by(params_sort, params_order)
 
     finder = finder.search(params[:search]) if params[:search].present?
     finder.page(params[:page]).per(current_user.per_page)
   end
 
-  def index; end
+  def index
+  end
 
   def show
-    @notices = problem.object.notices.reverse_ordered.
-      page(params[:notice]).per(1)
-    first_notice = @notices.first
-    @notice  = first_notice ? NoticeDecorator.new(first_notice) : nil
+    notice =
+      if params[:notice_id]
+        Notice.find(params.expect(:notice_id))
+      else
+        @notices = problem.object.notices.reverse_ordered
+          .page(params[:notice]).per(1)
+        @notices.first
+      end
+    @notice = notice ? NoticeDecorator.new(notice) : nil
     @comment = Comment.new
   end
 
+  def show_by_id
+    problem = Problem.find(params.expect(:id))
+    redirect_to app_problem_path(problem.app, problem)
+  end
+
   def xhr_sparkline
-    render partial: 'problems/sparkline', layout: false
+    render partial: "problems/sparkline", locals: {problem: problem}, layout: false
   end
 
   def close_issue
     issue = Issue.new(problem: problem, user: current_user)
-    flash[:error] = issue.errors.full_messages.join(', ') unless issue.close
+
+    flash[:error] = issue.errors.full_messages.join(", ") unless issue.close
 
     redirect_to app_problem_path(app, problem)
   end
 
   def create_issue
     issue = Issue.new(problem: problem, user: current_user)
+
     issue.body = render_to_string(*issue.render_body_args)
 
-    flash[:error] = issue.errors.full_messages.join(', ') unless issue.save
+    flash[:error] = issue.errors.full_messages.join(", ") unless issue.save
 
     redirect_to app_problem_path(app, problem)
   end
 
   def unlink_issue
-    problem.update_attribute :issue_link, nil
+    problem.update_attribute(:issue_link, nil)
+
     redirect_to app_problem_path(app, problem)
   end
 
   def resolve
     problem.resolve!
-    flash[:success] = t('.the_error_has_been_resolved')
-    redirect_to :back
-  rescue ActionController::RedirectBackError
-    redirect_to app_path(app)
+
+    flash[:success] = t(".the_error_has_been_resolved")
+
+    redirect_back_or_to(root_path)
   end
 
   def resolve_several
     selected_problems.each(&:resolve!)
-    flash[:success] = "Great news everyone! #{I18n.t(:n_errs_have, count: selected_problems.count)} #{I18n.t('n_errs_have.been_resolved')}."
-    redirect_to :back
+
+    flash[:success] = "Great news everyone! #{I18n.t(:n_errs_have, count: selected_problems.count)} #{I18n.t("n_errs_have.been_resolved")}."
+
+    redirect_back_or_to(root_path)
   end
 
   def unresolve_several
     selected_problems.each(&:unresolve!)
-    flash[:success] = "#{I18n.t(:n_errs_have, count: selected_problems.count)} #{I18n.t('n_errs_have.been_unresolved')}."
-    redirect_to :back
+
+    flash[:success] = "#{I18n.t(:n_errs_have, count: selected_problems.count)} #{I18n.t("n_errs_have.been_unresolved")}."
+
+    redirect_back_or_to(root_path)
   end
 
-  ##
-  # Action to merge several Problem in One problem
-  #
-  # @param [ Array<String> ] :problems the list of problem ids
-  #
   def merge_several
     if selected_problems.length < 2
-      flash[:notice] = I18n.t('controllers.problems.flash.need_two_errors_merge')
+      flash[:notice] = I18n.t("controllers.problems.flash.need_two_errors_merge")
     else
       ProblemMerge.new(selected_problems).merge
-      flash[:notice] = I18n.t('controllers.problems.flash.merge_several.success', nb: selected_problems.count)
+
+      flash[:notice] = I18n.t("controllers.problems.flash.merge_several.success", nb: selected_problems.count)
     end
-    redirect_to :back
+
+    redirect_back_or_to(root_path)
   end
 
   def unmerge_several
     all = selected_problems.flat_map(&:unmerge!)
-    flash[:success] = "#{I18n.t(:n_errs_have, count: all.length)} #{I18n.t('n_errs_have.been_unmerged')}."
-    redirect_to :back
+
+    flash[:success] = "#{I18n.t(:n_errs_have, count: all.length)} #{I18n.t("n_errs_have.been_unmerged")}."
+
+    redirect_back_or_to(root_path)
   end
 
   def destroy_several
     DestroyProblemsByIdJob.perform_later(selected_problems_ids)
-    flash[:notice] = "#{I18n.t(:n_errs, count: selected_problems.size)} #{I18n.t('n_errs.will_be_deleted')}."
-    redirect_to :back
+
+    flash[:notice] = "#{I18n.t(:n_errs, count: selected_problems.size)} #{I18n.t("n_errs.will_be_deleted")}."
+
+    redirect_back_or_to(root_path)
   end
 
   def destroy_all
     DestroyProblemsByAppJob.perform_later(app.id)
-    flash[:success] = "#{I18n.t(:n_errs, count: app.problems.count)} #{I18n.t('n_errs.will_be_deleted')}."
-    redirect_to :back
-  rescue ActionController::RedirectBackError
-    redirect_to app_path(app)
+
+    flash[:success] = "#{I18n.t(:n_errs, count: app.problems.count)} #{I18n.t("n_errs.will_be_deleted")}."
+
+    redirect_back_or_to(root_path)
   end
 
   def search
     respond_to do |format|
-      format.html { render :index }
-      format.js
+      format.html do
+        if request.xhr?
+          render partial: "problems/table", locals: {problems: problems}, layout: false
+        else
+          render :index
+        end
+      end
     end
   end
 
-protected
+  private
 
-  ##
-  # Redirect :back if no errors selected
-  #
   def need_selected_problem
     return if err_ids.any?
 
-    flash[:notice] = I18n.t('controllers.problems.flash.no_select_problem')
-    redirect_to :back
+    flash[:notice] = I18n.t("controllers.problems.flash.no_select_problem")
+
+    redirect_back_or_to(root_path)
   end
 end

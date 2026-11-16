@@ -1,0 +1,9 @@
+/* Tailwind CSS-like styles */
+
+.hidden {
+  display: none;
+}
+
+.visible {
+  visibility: visible;
+}

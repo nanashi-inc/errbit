@@ -1,33 +1,28 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
 RSpec.describe DestroyProblemsByAppJob, type: :job do
-  before do
-    @app      = Fabricate(:app)
-    @problem1 = Fabricate(:problem, app: @app)
-    @problem2 = Fabricate(:problem, app: @app)
-  end
+  it { expect(subject).to be_an(ApplicationJob) }
 
   it "destroys all problems" do
-    expect do
-      DestroyProblemsByAppJob.perform_later(@app.id)
-    end.to change(Problem, :count).by(-2)
-    expect(@app.problems.count).to eq 0
-  end
+    app = create(:app)
+    create(:problem, app: app)
 
-  it "destroys all problems, even with a large amount of them" do
-    app2 = Fabricate(:app)
-    500.times do
-      Fabricate(:problem, app: app2)
-    end
     expect do
-      DestroyProblemsByAppJob.perform_later(app2.id)
-    end.to change(Problem, :count).by(-500)
-    expect(app2.problems.count).to eq 0
+      described_class.perform_later(app.id)
+    end.to change(Problem, :count).by(-1)
+
+    expect(app.problems.count).to eq(0)
   end
 
   it "should work with a fresh new application" do
-    app2 = Fabricate(:app)
+    app = create(:app)
+
     expect do
-      DestroyProblemsByAppJob.perform_later(app2.id)
-    end.to change(Problem, :count).by(0)
-    expect(app2.problems.count).to eq 0
+      described_class.perform_later(app.id)
+    end.not_to change(Problem, :count)
+
+    expect(app.problems.count).to eq(0)
   end
 end

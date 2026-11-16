@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class User
   PER_PAGE = 30
+
   include Mongoid::Document
   include Mongoid::Timestamps
 
@@ -26,11 +29,11 @@ class User
   field :remember_created_at, type: Time
 
   ### Trackable
-  field :sign_in_count,      type: Integer
+  field :sign_in_count, type: Integer
   field :current_sign_in_at, type: Time
-  field :last_sign_in_at,    type: Time
+  field :last_sign_in_at, type: Time
   field :current_sign_in_ip, type: String
-  field :last_sign_in_ip,    type: String
+  field :last_sign_in_ip, type: String
 
   ### Token_authenticatable
   field :authentication_token, type: String
@@ -40,32 +43,37 @@ class User
   before_save :ensure_authentication_token
 
   validates :name, presence: true
-  validates :github_login, uniqueness: { allow_nil: true }
+  validates :github_login, uniqueness: {allow_nil: true}
 
   if Errbit::Config.user_has_username
     field :username
     validates :username, presence: true
   end
 
-  def self.valid_google_domain?(email)
-    return true if Errbit::Config.google_authorized_domains.nil?
-    match_data = /.+@(?<domain>.+)$/.match(email)
-    return false if match_data.nil?
-    Errbit::Config.google_authorized_domains.split(",").include?(match_data[:domain])
-  end
+  class << self
+    # @param email [String]
+    def valid_google_domain?(email)
+      return true if Errbit::Config.google_authorized_domains.blank?
 
-  def self.create_from_google_oauth2(access_token)
-    data = access_token.info
-    user = User.where(email: data['email']).first
+      match_data = /.+@(?<domain>.+)$/.match(email)
+      return false if match_data.nil?
 
-    unless user
-      user = User.create(name:       data['name'],
-                         email:      data['email'],
-                         google_uid: access_token.uid,
-                         password:   Devise.friendly_token[0, 20]
-      )
+      Errbit::Config.google_authorized_domains.split(",").include?(match_data[:domain])
     end
-    user
+
+    # @param access_token [String]
+    def create_from_google_oauth2(access_token) # rubocop:disable Naming/VariableNumber
+      email = access_token.dig(:info, :email)
+      name = access_token.dig(:info, :name)
+      uid = access_token[:uid]
+
+      user = User.where(email: email).first
+
+      user || User.create(name: name,
+        email: email,
+        google_uid: uid,
+        password: Devise.friendly_token[0, 20])
+    end
   end
 
   def per_page
@@ -85,7 +93,7 @@ class User
   end
 
   def can_create_github_issues?
-    github_account? && Errbit::Config.github_access_scope.include?('repo')
+    github_account? && Errbit::Config.github_access_scope.include?("repo")
   end
 
   def github_login=(login)
@@ -113,10 +121,18 @@ class User
 
     self.class.validators_on(:password).map { |v| v.validate_each(self, :password, password) }
     return false if errors.any?
+
     save(validate: false)
   end
 
-private
+  def attributes_for_super_diff
+    {
+      id: id.to_s,
+      name: name
+    }
+  end
+
+  private
 
   def generate_authentication_token
     loop do

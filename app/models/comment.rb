@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 class Comment
   include Mongoid::Document
   include Mongoid::Timestamps
 
   after_create :increase_counter_cache
-  before_destroy :decrease_counter_cache
-
   after_create :deliver_email, if: :emailable?
+  before_destroy :decrease_counter_cache
 
   field :body, type: String
   index(user_id: 1)
@@ -17,8 +18,10 @@ class Comment
 
   validates :body, presence: true
 
+  scope :ordered, -> { order_by(:created_at.asc) }
+
   def deliver_email
-    Mailer.comment_notification(self).deliver_now
+    Mailer.with(comment: self).comment_notification.deliver_now
   end
 
   def notification_recipients
@@ -29,13 +32,13 @@ class Comment
     app.emailable? && notification_recipients.any?
   end
 
-protected
+  private
 
   def increase_counter_cache
     err.inc(comments_count: 1)
   end
 
   def decrease_counter_cache
-    err.inc(comments_count: -1) if err
+    err&.inc(comments_count: -1)
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class NoticeFingerprinter
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -30,6 +32,6 @@ class NoticeFingerprinter
       end
     end
 
-    Digest::MD5.hexdigest(material.map(&:to_s).join)
+    Digest::MD5.hexdigest(material.join)
   end
 end

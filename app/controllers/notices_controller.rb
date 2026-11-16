@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class NoticesController < ApplicationController
-  class ParamsError < StandardError; end
+  class ParamsError < StandardError
+  end
 
   skip_before_action :authenticate_user!, only: :create
   skip_before_action :verify_authenticity_token, only: :create
@@ -18,33 +21,42 @@ class NoticesController < ApplicationController
         end
         render xml: api_xml
       else
-        render text: "Notice for old app version ignored"
+        render body: "Notice for old app version ignored"
       end
     else
-      render text: "Your API key is unknown", status: 422
+      render body: "Your API key is unknown", status: :unprocessable_content
     end
   rescue Nokogiri::XML::SyntaxError
-    render text: 'The provided XML was not well-formed', status: 422
+    render body: "The provided XML was not well-formed", status: :unprocessable_content
   end
 
   # Redirects a notice to the problem page. Useful when using User Information at Airbrake gem.
   def locate
-    problem = Notice.find(params[:id]).problem
+    problem = Notice.find(params.expect(:id)).problem
     redirect_to app_problem_path(problem.app, problem)
   end
 
-private
+  def show_by_id
+    notice = Notice.find(params.expect(:id))
+    problem = notice.problem
+    redirect_to app_problem_path(problem.app, problem, notice_id: notice.id)
+  end
+
+  private
 
   def notice_params
     return @notice_params if @notice_params
+
     @notice_params = params[:data] || request.raw_post
+
     if @notice_params.blank?
-      fail ParamsError, 'Need a data params in GET or raw post data'
+      fail ParamsError, "Need a data params in GET or raw post data"
     end
+
     @notice_params
   end
 
   def bad_params(exception)
-    render text: exception.message, status: :bad_request
+    render body: exception.message, status: :bad_request
   end
 end

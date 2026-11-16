@@ -5,21 +5,30 @@ FROM registry.docker.com/library/ruby:4.0.9-slim@sha256:d8cb2c0714bdaba0f318af89
 # Rails app lives here
 WORKDIR /rails
 
-# Install packages needed to build gems
+# Install base packages
 RUN set -eux ; \
     apt-get update -qq ; \
     apt-get dist-upgrade -qq ; \
-    apt-get install --no-install-recommends -y build-essential git pkg-config libyaml-dev libssl-dev ; \
+    apt-get install --no-install-recommends -y curl libjemalloc2 shared-mime-info ; \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment
 # https://github.com/rails/rails/pull/46981
 # https://github.com/rails/rails/commit/1a7e88323e6e92bf2d3ddf397b3023529b505e86#commitcomment-96003108
 # We don't use this image for testing on CI, so: add "test" to BUNDLE_WITHOUT
-ENV RAILS_ENV="production" \
+# productionバージョン
+#ENV RAILS_ENV="production" \
+#    BUNDLE_DEPLOYMENT="1" \
+#    BUNDLE_PATH="/usr/local/bundle" \
+#    BUNDLE_WITHOUT="development:test" \
+#    BOOTSNAP_LOG="true" \
+#    BOOTSNAP_READONLY="true"
+
+# developmentバージョン
+ENV RAILS_ENV="development" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development:test" \
+    BUNDLE_WITHOUT="test" \
     BOOTSNAP_LOG="true" \
     BOOTSNAP_READONLY="true"
 
@@ -34,7 +43,7 @@ FROM base AS build
 RUN set -eux ; \
     apt-get update -qq ; \
     apt-get dist-upgrade -qq ; \
-    apt-get install --no-install-recommends -y build-essential git pkg-config libyaml-dev
+    apt-get install --no-install-recommends -y build-essential git pkg-config libyaml-dev libssl-dev
 
 # Install application gems
 COPY .ruby-version Gemfile Gemfile.lock UserGemfile ./

@@ -113,13 +113,14 @@ gem "underscore-rails"
 
 # Deployment
 # ---------------------------------------
-group :deployment do
-  gem 'capistrano',         require: false
-  gem 'capistrano-bundler', require: false
-  gem 'capistrano-rails',   require: false
-  gem 'capistrano-rbenv',   require: false
-  gem 'capistrano3-puma',   require: false
-  gem 'capistrano-git-copy',require: false
+group :deployment, :development do
+  gem "capistrano", require: false
+  gem "capistrano-bundler", require: false
+  gem "capistrano-rails", require: false
+  gem "capistrano-rbenv", require: false
+  gem "capistrano3-puma", require: false
+  gem "capistrano-git-copy", require: false
+
 end
 
 eval_gemfile "./UserGemfile"
